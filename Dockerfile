@@ -4,7 +4,11 @@ FROM node:7.5
 # RUN npm install --global yarn
 # RUN npm install -g yarn
 
-RUN yarn install
+RUN npm install -g -s --no-progress yarn && \
+    yarn && \
+    yarn run build && \
+    yarn run prune && \
+    yarn cache clean
 
 WORKDIR /var/app
 RUN mkdir -p /var/app
