@@ -1,9 +1,10 @@
 FROM node:7.5
 
 # yarn > npm
-#RUN npm install --global yarn
+# RUN npm install --global yarn
+# RUN npm install -g yarn
 
-RUN npm install -g yarn
+RUN yarn install
 
 WORKDIR /var/app
 RUN mkdir -p /var/app
