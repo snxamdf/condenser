@@ -3,7 +3,7 @@ FROM node:8.1.3
 # yarn > npm
 #RUN npm install --global yarn
 
-RUN npm install -g yarn
+RUN yarn install
 
 WORKDIR /var/app
 RUN mkdir -p /var/app
@@ -20,8 +20,8 @@ COPY . /var/app
 #  npm run build
 
 RUN mkdir tmp && \
-  npm test && \
-  npm run-script build
+  yarn test && \
+  yarn run-script build
 
 ENV PORT 8080
 ENV NODE_ENV production
