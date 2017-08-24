@@ -1,4 +1,4 @@
-FROM node:8
+FROM node:8.1-alpine
 
 # yarn > npm
 #RUN npm install --global yarn
