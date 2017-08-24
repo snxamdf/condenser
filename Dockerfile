@@ -3,7 +3,7 @@ FROM node:8.1-alpine
 # yarn > npm
 #RUN npm install --global yarn
 
-RUN npm install -g yarn
+RUN npm install -g yarn --force-yes
 
 WORKDIR /var/app
 RUN mkdir -p /var/app
