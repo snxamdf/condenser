@@ -603,7 +603,7 @@
     "confirm_email": "Confirm Email",
     "authenticate_for_this_transaction": "Authenticate for this transaction",
     "login_to_your_APP_NAME_account": "Login to your %(APP_NAME)s Account",
-    "part_of_your_steem_power_is_currently_delegated": "Part of your STEEM POWER is currently delegated to you. Delegation is donated for influence or to help new users perform actions on steemit. Your delegation amount can fluctuate."
+    "part_of_your_steem_power_is_currently_delegated": "Part of %(user_name)s's STEEM POWER is currently delegated. Delegation is donated for influence or to help new users perform actions on steemit. Your delegation amount can fluctuate."
   },
   "promote_post_jsx": {
     "promote_post": "Promote Post",
