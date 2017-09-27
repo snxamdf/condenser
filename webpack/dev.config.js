@@ -49,7 +49,7 @@ export default {
             new webpack.DefinePlugin({
                 'process.env': {
                     BROWSER: JSON.stringify(true),
-                    NODE_ENV: JSON.stringify('development'),
+                    NODE_ENV: JSON.stringify(process.env['NODE_ENV']),
                     VERSION: JSON.stringify(git.tag())
                 },
                 global: {
