@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 
 import transaction from 'app/redux/Transaction'
 import TransactionError from 'app/components/elements/TransactionError'
+import MarketReducer from 'app/redux/MarketReducer';
 import DepthChart from 'app/components/elements/DepthChart';
 import Orderbook from "app/components/elements/Orderbook";
 import OrderHistory from "app/components/elements/OrderHistory";
@@ -148,9 +149,13 @@ class Market extends React.Component {
         this.setState({sell_disabled: !valid, sell_price_warning: valid && this.percentDiff(highest_bid, price) < -15 });
     }
 
+    handleToggleOpenOrdersSort = (column, dataType = 'float') => {
+        this.props.toggleOpenOrdersSort(column, dataType);
+    }
+
     render() {
         const {sellSteem, buySteem, cancelOrderClick, setFormPrice,
-               validateBuySteem, validateSellSteem} = this
+               validateBuySteem, validateSellSteem, handleToggleOpenOrdersSort} = this
         const {buy_disabled, sell_disabled,
                buy_price_warning, sell_price_warning} = this.state
 
@@ -227,24 +232,9 @@ class Market extends React.Component {
         //     return
         // }
 
-
-        function normalizeOpenOrders(open_orders) {
-            return open_orders.map( o => {
-                const type = o.sell_price.base.indexOf(LIQUID_TICKER) > 0 ? 'ask' : 'bid'
-                //{orderid: o.orderid,
-                // created: o.created,
-                return {...o,
-                 type:    type,
-                 price:   parseFloat(type == 'ask' ? o.real_price : o.real_price),
-                 steem:   type == 'ask' ? o.sell_price.base : o.sell_price.quote,
-                 sbd:     type == 'bid' ? o.sell_price.base : o.sell_price.quote}
-
-            })
-        }
-
         // Logged-in user's open orders
         function open_orders_table(open_orders) {
-            const rows = open_orders && normalizeOpenOrders(open_orders).map( o =>
+            const rows = open_orders && open_orders.map( o =>
               <tr key={o.orderid}>
                   <td>{o.created.replace('T', ' ')}</td>
                   <td>{o.type == 'g.ask' ? tt('g.sell') : tt('g.buy')}</td>
@@ -257,11 +247,11 @@ class Market extends React.Component {
             return <table className="Market__open-orders">
                 <thead>
                     <tr>
-                        <th>{tt('market_jsx.date_created')}</th>
-                        <th>{tt('g.type')}</th>
-                        <th>{tt('g.price')}</th>
-                        <th className="uppercase">{LIQUID_TOKEN}</th>
-                        <th>{`${DEBT_TOKEN_SHORT} (${CURRENCY_SIGN})`}</th>
+                        <th onClick={e => handleToggleOpenOrdersSort('created', 'string')}>{tt('market_jsx.date_created')}</th>
+                        <th onClick={e => handleToggleOpenOrdersSort('type', 'string')}>{tt('g.type')}</th>
+                        <th onClick={e => handleToggleOpenOrdersSort('real_price')}>{tt('g.price')}</th>
+                        <th onClick={e => handleToggleOpenOrdersSort('for_sale')} className="uppercase">{LIQUID_TOKEN}</th>
+                        <th onClick={e => handleToggleOpenOrdersSort('sbd')}>{`${DEBT_TOKEN_SHORT} (${CURRENCY_SIGN})`}</th>
                         <th>{tt('market_jsx.action')}</th>
                     </tr>
                 </thead>
@@ -596,6 +586,9 @@ module.exports = {
                 warning,
                 successCallback: () => {successCallback(successMessage);}
             }))
+        },
+        toggleOpenOrdersSort: (column, dataType) => {
+            dispatch(MarketReducer.actions.toggleOpenOrdersSort({ column, dataType }));
         }
     })
     )(Market)
