@@ -1,4 +1,4 @@
-import {Map} from 'immutable';
+import { Map, fromJS } from 'immutable';
 import createModule from 'redux-modules';
 
 import { LIQUID_TICKER } from 'app/client_config';
@@ -9,8 +9,9 @@ export default createModule({
         status: {},
         open_orders_sort: {
             column: 'created',
-            dir: -1,
-        }
+            dataType: 'string',
+            dir: 1,
+        },
     }),
     transformations: [
         {
@@ -28,8 +29,12 @@ export default createModule({
         {
             action: 'RECEIVE_OPEN_ORDERS',
             reducer: (state, action) => {
-                // Store normalized data right in redux.
-                return state.set('open_orders', action.payload.map(o => {
+                // Store normalized data right in redux, and apply current sort.
+                const { dir, column, dataType } = state.get('open_orders_sort').toJS();
+                const getValue = (dataType === 'string') ? v => v : parseFloat;
+
+                const open_orders = action.payload
+                .map(o => {
                     const type = o.sell_price.base.indexOf(LIQUID_TICKER) > 0 ? 'ask' : 'bid';
                     return {
                         ...o,
@@ -38,7 +43,20 @@ export default createModule({
                         steem: type == 'ask' ? o.sell_price.base : o.sell_price.quote,
                         sbd: type == 'bid' ? o.sell_price.base : o.sell_price.quote,
                     };
-                }));
+                })
+                .sort((a, b) => {
+                    if (getValue(a[column]) < getValue(b[column])) {
+                        return -1 * dir;
+                    }
+
+                    if (getValue(a[column]) > getValue(b[column])) {
+                        return 1 * dir;
+                    }
+
+                    return 0;
+                });
+
+                return state.set('open_orders', open_orders);
             }
         },
         {
@@ -55,9 +73,8 @@ export default createModule({
         },
         {
             action: 'TOGGLE_OPEN_ORDERS_SORT',
-            reducer: (state, { payload: { column, dataType } }) => {
-                // Sort open_orders (side effect, bad maybe?), and then set the sort state
-                const dir = state.get('open_orders_sort').dir ? -state.get('open_orders_sort').dir : -1;
+            reducer: (state, { payload: { column = 'created', dataType = 'float' } }) => {
+                const dir = -state.get('open_orders_sort').get('dir');
 
                 const getValue = (dataType === 'string') ? v => v : parseFloat;
 
@@ -73,11 +90,11 @@ export default createModule({
                     return 0;
                 }));
 
-                // initialState doesn't seem to be used, so we can't assume it is set already
-                return state.set('open_orders_sort', {
+                return state.set('open_orders_sort', fromJS({
                     column,
+                    dataType,
                     dir,
-                });
+                }));
             }
         }
     ]

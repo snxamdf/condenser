@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {connect} from 'react-redux';
 //import Highcharts from 'highcharts';
+import classNames from 'classnames';
 
 import transaction from 'app/redux/Transaction'
 import TransactionError from 'app/components/elements/TransactionError'
@@ -18,6 +19,7 @@ class Market extends React.Component {
     static propTypes = {
         orderbook: React.PropTypes.object,
         open_orders: React.PropTypes.array,
+        open_orders_sort: React.PropTypes.object,
         ticker: React.PropTypes.object,
         // redux PropTypes
         placeOrder: React.PropTypes.func.isRequired,
@@ -220,6 +222,7 @@ class Market extends React.Component {
 
         let account     = this.props.account ? this.props.account.toJS() : null;
         let open_orders = this.props.open_orders;
+        let open_orders_sort = this.props.open_orders_sort;
         let orderbook   = aggOrders(normalizeOrders(this.props.orderbook));
 
         // ORDERBOOK TABLE GENERATOR
@@ -232,8 +235,10 @@ class Market extends React.Component {
         //     return
         // }
 
+
+
         // Logged-in user's open orders
-        function open_orders_table(open_orders) {
+        function open_orders_table(open_orders, open_orders_sort) {
             const rows = open_orders && open_orders.map( o =>
               <tr key={o.orderid}>
                   <td>{o.created.replace('T', ' ')}</td>
@@ -244,15 +249,45 @@ class Market extends React.Component {
                   <td><a href="#" onClick={e => cancelOrderClick(e, o.orderid)}>{tt('g.cancel')}</a></td>
               </tr> )
 
+            const activeClass = (column) => {
+                if (column === open_orders_sort.column) {
+                    const dir = open_orders_sort.dir === -1 ? 'desc' : 'asc';
+                    return ['activesort', `activesort--${dir}`];
+                }
+                return null;
+            }
+
             return <table className="Market__open-orders">
                 <thead>
                     <tr>
-                        <th onClick={e => handleToggleOpenOrdersSort('created', 'string')}>{tt('market_jsx.date_created')}</th>
-                        <th onClick={e => handleToggleOpenOrdersSort('type', 'string')}>{tt('g.type')}</th>
-                        <th onClick={e => handleToggleOpenOrdersSort('real_price')}>{tt('g.price')}</th>
-                        <th onClick={e => handleToggleOpenOrdersSort('for_sale')} className="uppercase">{LIQUID_TOKEN}</th>
-                        <th onClick={e => handleToggleOpenOrdersSort('sbd')}>{`${DEBT_TOKEN_SHORT} (${CURRENCY_SIGN})`}</th>
-                        <th>{tt('market_jsx.action')}</th>
+                        <th
+                            className={classNames(activeClass('created'))}
+                            onClick={e => handleToggleOpenOrdersSort('created', 'string')}>
+                            {tt('market_jsx.date_created')}
+                        </th>
+                        <th
+                            className={classNames(activeClass('type'))}
+                            onClick={e => handleToggleOpenOrdersSort('type', 'string')}>
+                            {tt('g.type')}
+                        </th>
+                        <th
+                            className={classNames(activeClass('real_price'))}
+                            onClick={e => handleToggleOpenOrdersSort('real_price')}>
+                            {tt('g.price')}
+                        </th>
+                        <th
+                            className={classNames(activeClass('for_sale'), 'uppercase')}
+                            onClick={e => handleToggleOpenOrdersSort('for_sale')}>
+                            {LIQUID_TOKEN}
+                        </th>
+                        <th
+                            className={classNames(activeClass('sbd'))}
+                            onClick={e => handleToggleOpenOrdersSort('sbd')} >
+                            {`${DEBT_TOKEN_SHORT} (${CURRENCY_SIGN})`}
+                        </th>
+                        <th>
+                            {tt('market_jsx.action')}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -511,7 +546,7 @@ class Market extends React.Component {
                     <div className="row">
                         <div className="column">
                             <h4>{tt('market_jsx.open_orders')}</h4>
-                            {open_orders_table(open_orders)}
+                            {open_orders_table(open_orders, open_orders_sort)}
                         </div>
                     </div>}
 
@@ -531,7 +566,8 @@ module.exports = {
             account:     state.global.getIn(['accounts', username]),
             history:     state.market.get('history'),
             user:        username,
-            feed:        state.global.get('feed_price').toJS()
+            feed:        state.global.get('feed_price').toJS(),
+            open_orders_sort: state.market.get('open_orders_sort').toJS(),
         }
     },
     dispatch => ({
