@@ -1,6 +1,7 @@
 import { Map, fromJS } from 'immutable';
 import createModule from 'redux-modules';
 
+import { createOrderSorter } from 'app/utils/MarketUtils';
 import { LIQUID_TICKER } from 'app/client_config';
 
 export default createModule({
@@ -44,17 +45,7 @@ export default createModule({
                         sbd: type == 'bid' ? o.sell_price.base : o.sell_price.quote,
                     };
                 })
-                .sort((a, b) => {
-                    if (getValue(a[column]) < getValue(b[column])) {
-                        return -1 * dir;
-                    }
-
-                    if (getValue(a[column]) > getValue(b[column])) {
-                        return 1 * dir;
-                    }
-
-                    return 0;
-                });
+                .sort(createOrderSorter(getValue, column, dir));
 
                 return state.set('open_orders', open_orders);
             }
@@ -78,17 +69,7 @@ export default createModule({
 
                 const getValue = (dataType === 'string') ? v => v : parseFloat;
 
-                state.set('open_orders', state.get('open_orders').sort((a, b) => {
-                    if (getValue(a[column]) < getValue(b[column])) {
-                        return -1 * dir;
-                    }
-
-                    if (getValue(a[column]) > getValue(b[column])) {
-                        return 1 * dir;
-                    }
-
-                    return 0;
-                }));
+                state.set('open_orders', state.get('open_orders').sort(createOrderSorter(getValue, column, dir)));
 
                 return state.set('open_orders_sort', fromJS({
                     column,

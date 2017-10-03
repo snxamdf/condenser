@@ -18,7 +18,29 @@ function roundDown(num, precision) {
     return Math.floor(satoshis) / Math.pow(10, precision)
 }
 
+/**
+ * Returns a sorting function which uses a given column and value-fetcher.
+ *
+ * @param {Function} getValue
+ * @param {String} columnName
+ * @param {Number} dir either 1 or -1
+ */
+function createOrderSorter(getValue, columnName, dir) {
+    return (a, b) => {
+        if (getValue(a[columnName]) < getValue(b[columnName])) {
+            return -1 * dir;
+        }
+
+        if (getValue(a[columnName]) > getValue(b[columnName])) {
+            return 1 * dir;
+        }
+
+        return 0;
+    };
+}
+
 module.exports = {
     roundUp,
-    roundDown
+    roundDown,
+    createOrderSorter,
 }
